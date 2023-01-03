@@ -14,18 +14,18 @@ class Preprocess:
         text = []
         label = []
 
-        for line in open(self.data_path):
+        for line in open(self.data_path, encoding="utf-8"):
             words = line.strip().split()
             text.append(words[0])
             label.append(" ".join(words[1:]))
         
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(text, label, test_size=self.test_size)
     
-        label_encoder = LabelEncoder()
-        label_encoder.fit(self.Y_train)
+        self.label_encoder = LabelEncoder()
+        self.label_encoder.fit(self.Y_train)
 
-        self.Y_train = label_encoder.transform(self.Y_train)
-        self.Y_test = label_encoder.transform(self.Y_test)
+        self.Y_train = self.label_encoder.transform(self.Y_train)
+        self.Y_test = self.label_encoder.transform(self.Y_test)
     
     def Tokenize(self):
         self.tokenizer = Tokenizer(self.num_words)
