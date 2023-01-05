@@ -22,8 +22,8 @@ def parameter_parser():
 							default = 50, #50 if use glove, 128 is default
 						help = "Number of neurons by hidden layer. Default is 128.")
 						
-	parser.add_argument("--lstm_layers",
-							dest = "lstm_layers",
+	parser.add_argument("--num_layers",
+							dest = "num_layers",
 							type = int,
 							default = 2,
 					help = "Number of LSTM layers")

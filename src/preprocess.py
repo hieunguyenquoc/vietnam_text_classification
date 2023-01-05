@@ -16,8 +16,8 @@ class Preprocess:
 
         for line in open(self.data_path, encoding="utf-8"):
             words = line.strip().split()
-            text.append(words[0])
-            label.append(" ".join(words[1:]))
+            label.append(words[0])
+            text.append(" ".join(words[1:]))
         
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(text, label, test_size=self.test_size)
     

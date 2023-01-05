@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import torch.optim as optim
 import torch.nn.functional as F
+import torch.nn as nn
 import numpy as np
 from parser_param import parameter_parser
 SEED = 2019
@@ -52,6 +53,7 @@ class Execute:
         
         optimizer = optim.Adam(self.model.parameters(), lr=args.learning_rate)
 
+        loss_function = nn.CrossEntropyLoss(reduction="sum")
         train_loss = []
         test_loss = []
 
@@ -67,11 +69,11 @@ class Execute:
 
             for x_batch, y_batch in self.load_train:
                 x = x_batch.type(torch.LongTensor)
-                y = y_batch.type(torch.FloatTensor).unsqueeze()
+                y = y_batch.type(torch.LongTensor)
 
                 y_pred = self.model(x)
 
-                loss = F.cross_entropy(y_pred, y)
+                loss = loss_function(y_pred, y)
 
                 optimizer.zero_grad()
 
@@ -90,15 +92,15 @@ class Execute:
         # print("Epoch : %.5f, loss : %.5f, Train Accuracy : %.5f, Test Accuracy : %.5f" % (epoch +1, loss.item(), train_accuracy, test_accuracy))
             self.model.eval()
             avg_test_loss = 0
-            test_preds = np.zeros((len(self.x_test), len(self.preprocess.label_encoder)))
+            test_preds = np.zeros((len(self.x_test), len(self.preprocess.label_encoder.classes_)))
             with torch.no_grad():
                 for i, (x_batch, y_batch) in enumerate(self.load_test):
                     x = x_batch.type(torch.LongTensor)
-                    y = y_batch.type(torch.FloatTensor).unsqueeze()
+                    y = y_batch.type(torch.LongTensor)
 
                     y_pred = self.model(x)
                     
-                    avg_test_loss += F.cross_entropy(y_pred, y).item() / len(self.load_test)
+                    avg_test_loss += loss_function(y_pred, y).item() / len(self.load_test)
                     test_preds[i * args.batch_size:(i+1) * args.batch_size] = F.softmax(y_pred).numpy() 
 
                 #Check accuracy
