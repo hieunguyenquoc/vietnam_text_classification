@@ -1,3 +1,5 @@
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 import torch
 from preprocess import Preprocess
 from model import TextClassification
@@ -25,7 +27,6 @@ class DataMapper(Dataset):
 class Execute:
     def __init__(self,args):
         self.__init_data__(args)
-
         self.batch_size = args.batch_size
         self.model = TextClassification(args)
 
@@ -44,7 +45,15 @@ class Execute:
         self.y_test = self.preprocess.Y_test
 
     def train(self):
-        
+        if torch.cuda.is_available():
+            device = "cuda:0"
+            print("Run on GPU")
+        else:
+            device = "cpu"
+            print("Run on CPU")
+
+        self.model.to(device)
+
         train = DataMapper(self.x_train, self.y_train)
         test = DataMapper(self.x_test, self.y_test)
 
@@ -54,23 +63,23 @@ class Execute:
         optimizer = optim.Adam(self.model.parameters(), lr=args.learning_rate)
 
         loss_function = nn.CrossEntropyLoss(reduction="sum")
+        loss_function = loss_function.to(device)
         train_loss = []
         test_loss = []
-
-        if torch.cuda.is_available():
-            print("Run on GPU")
-        else:
-            print("Run on CPU")
+        
 
         print(self.model)
         for epoch in range(args.epochs):
+            
             self.model.train()
             avg_loss = 0
 
             for x_batch, y_batch in self.load_train:
                 x = x_batch.type(torch.LongTensor)
                 y = y_batch.type(torch.LongTensor)
-
+                x = x.to(device)
+                y = y.to(device)
+                
                 y_pred = self.model(x)
 
                 loss = loss_function(y_pred, y)

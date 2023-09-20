@@ -1,10 +1,11 @@
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 import torch
 import torch.nn as nn
 
 class TextClassification(nn.Module):
     def __init__(self, args):
         super(TextClassification, self).__init__()
-
         self.args = args
         self.num_layers = args.num_layers
         self.input_embedd = args.num_words
@@ -18,8 +19,12 @@ class TextClassification(nn.Module):
         self.fc2 = nn.Linear(in_features=64, out_features=self.num_layers)
 
     def forward(self,input):
-        h = torch.zeros((self.num_layers,input.size(0),self.embedd_dim))
-        c = torch.zeros((self.num_layers,input.size(0),self.embedd_dim))
+        if torch.cuda.is_available():
+            device = "cuda:0"
+        else:
+            device = "cpu"
+        h = torch.zeros((self.num_layers,input.size(0),self.embedd_dim), device=device)
+        c = torch.zeros((self.num_layers,input.size(0),self.embedd_dim), device=device)
 
         out = self.embedd(input)
 
