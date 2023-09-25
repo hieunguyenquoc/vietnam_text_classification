@@ -27,8 +27,15 @@ class DataMapper(Dataset):
 class Execute:
     def __init__(self,args):
         self.__init_data__(args)
+        if torch.cuda.is_available():
+            self.device = "cuda:0"
+            print("Run on GPU")
+        else:
+            self.device = "cpu"
+            print("Run on CPU")
         self.batch_size = args.batch_size
         self.model = TextClassification(args)
+        self.model.to(self.device)
 
     def __init_data__(self, args):
         self.preprocess = Preprocess(args)
@@ -45,15 +52,6 @@ class Execute:
         self.y_test = self.preprocess.Y_test
 
     def train(self):
-        if torch.cuda.is_available():
-            device = "cuda:0"
-            print("Run on GPU")
-        else:
-            device = "cpu"
-            print("Run on CPU")
-
-        self.model.to(device)
-
         train = DataMapper(self.x_train, self.y_train)
         test = DataMapper(self.x_test, self.y_test)
 
@@ -63,7 +61,7 @@ class Execute:
         optimizer = optim.Adam(self.model.parameters(), lr=args.learning_rate)
 
         loss_function = nn.CrossEntropyLoss(reduction="sum")
-        loss_function = loss_function.to(device)
+        loss_function = loss_function.to(self.device)
         train_loss = []
         test_loss = []
         
@@ -77,8 +75,8 @@ class Execute:
             for x_batch, y_batch in self.load_train:
                 x = x_batch.type(torch.LongTensor)
                 y = y_batch.type(torch.LongTensor)
-                x = x.to(device)
-                y = y.to(device)
+                x = x.to(self.device)
+                y = y.to(self.device)
                 
                 y_pred = self.model(x)
 
@@ -107,10 +105,13 @@ class Execute:
                     x = x_batch.type(torch.LongTensor)
                     y = y_batch.type(torch.LongTensor)
 
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+
                     y_pred = self.model(x)
                     
                     avg_test_loss += loss_function(y_pred, y).item() / len(self.load_test)
-                    test_preds[i * args.batch_size:(i+1) * args.batch_size] = F.softmax(y_pred).numpy() 
+                    test_preds[i * args.batch_size:(i+1) * args.batch_size] = F.softmax(y_pred.cpu()).numpy() 
 
                 #Check accuracy
                 test_accuracy = sum(test_preds.argmax(axis=1)==self.preprocess.Y_test)/len(self.preprocess.Y_test)

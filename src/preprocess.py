@@ -3,6 +3,7 @@ from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.text import Tokenizer
 from keras.utils import pad_sequences
 import re
+from underthesea import word_tokenize
 
 class Preprocess:
     def __init__(self, args):
@@ -57,7 +58,8 @@ class Preprocess:
         self.tokenizer.fit_on_texts(self.X_train)
     
     def sequence_to_text(self, input):
-        sentence = self.tokenizer.texts_to_sequences(input)
+        sentence = [word_tokenize(text, format="text") for text in input]
+        sentence = self.tokenizer.texts_to_sequences(sentence)
         return pad_sequences(sentence, self.max_len)
 
 

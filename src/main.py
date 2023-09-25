@@ -32,7 +32,7 @@ class Inference:
 
         with torch.no_grad():
             y_pred = self.model(sentence_final)
-            y_pred = F.softmax(y_pred).cpu().numpy()
+            y_pred = F.softmax(y_pred.cpu()).numpy()
 
             y_pred = y_pred.argmax(axis=1)
             y_pred = self.preprocess.label_encoder.classes_[y_pred]

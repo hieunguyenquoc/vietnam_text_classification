@@ -16,7 +16,7 @@ class TextClassification(nn.Module):
         self.embedd = nn.Embedding(self.input_embedd, self.embedd_dim, padding_idx=0)
         self.lstm = nn.LSTM(input_size = self.embedd_dim, hidden_size = self.embedd_dim, num_layers = self.num_layers, batch_first = True)
         self.fc1 = nn.Linear(in_features=self.embedd_dim, out_features=64)
-        self.fc2 = nn.Linear(in_features=64, out_features=self.num_layers)
+        self.fc2 = nn.Linear(in_features=64, out_features=self.num_class)
 
     def forward(self,input):
         if torch.cuda.is_available():
